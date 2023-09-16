@@ -10,3 +10,87 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model User {
+  id               Int             @id @unique @default(autoincrement())
+  identicationCard String          @unique
+  name             String
+  lastName         String
+  email            String
+  password         String
+  phone            String
+  rol              Rol             @relation(fields: [rolId], references: [id])
+  gender           Gender          @relation(fields: [genderId], references: [id])
+  rolId            Int
+  genderId         Int
+  Audit            Audit[]
+  StatusHistory    StatusHistory[]
+}
+
+model Gender {
+  id          Int     @id @unique @default(autoincrement())
+  gender      String  @unique
+  description String?
+  User        User[]
+}
+
+model Rol {
+  id          Int     @id @unique @default(autoincrement())
+  rol         String  @unique
+  description String?
+  User        User[]
+}
+
+model Career {
+  id            Int             @id @unique @default(autoincrement())
+  career        String
+  description   String?
+  StatusHistory StatusHistory[]
+}
+
+model Type {
+  id          Int     @id @unique @default(autoincrement())
+  type        String
+  description String?
+  Audit       Audit[]
+}
+
+model Status {
+  id            Int             @id @unique @default(autoincrement())
+  status        String
+  description   String?
+  StatusHistory StatusHistory[]
+}
+
+model Period {
+  id            Int             @id @unique @default(autoincrement())
+  period        String
+  description   String?
+  StatusHistory StatusHistory[]
+}
+
+model Audit {
+  id            Int      @id @unique
+  tableName     String
+  registry      Int
+  field         String
+  value_before  String
+  value_after   String
+  creation_date DateTime
+  type          Type     @relation(fields: [typeId], references: [id])
+  created_by    User     @relation(fields: [userId], references: [id])
+  typeId        Int
+  userId        Int
+}
+
+model StatusHistory {
+  id          Int     @id @unique @default(autoincrement())
+  observation String?
+  status      Status  @relation(fields: [statusId], references: [id])
+  period      Period  @relation(fields: [periodId], references: [id])
+  career      Career  @relation(fields: [careerId], references: [id])
+  user        User    @relation(fields: [userId], references: [id])
+  statusId    Int
+  periodId    Int
+  careerId    Int
+  userId      Int
+}
