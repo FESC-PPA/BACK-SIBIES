@@ -1,26 +1,40 @@
-import { Injectable } from '@nestjs/common';
-import { CreateAuthDto } from '../dto/create-auth.dto';
-import { UpdateAuthDto } from '../dto/update-auth.dto';
+import {
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
+import { PrismaService } from 'src/prisma/prisma.service';
+import { AuthEntity } from '../entities/auth.entity';
+import * as bcrypt from 'bcrypt';
+import { use } from 'passport';
 
 @Injectable()
 export class AuthsService {
-  create(createAuthDto: CreateAuthDto) {
-    return 'This action adds a new auth';
-  }
+  constructor(
+    private prismaService: PrismaService,
+    private jwtService: JwtService,
+  ) {}
 
-  findAll() {
-    return `This action returns all auths`;
-  }
+  async login(document: string, password: string): Promise<AuthEntity> {
+    const user = await this.prismaService.user.findUnique({
+      where: { identicationCard: document },
+    });
 
-  findOne(id: number) {
-    return `This action returns a #${id} auth`;
-  }
+    if (!user) {
+      throw new NotFoundException(
+        `Usuario no encontrado con el documento: ${document}`,
+      );
+    }
 
-  update(id: number, updateAuthDto: UpdateAuthDto) {
-    return `This action updates a #${id} auth`;
-  }
+    const isPasswordValid = await bcrypt.compare(password, user.password);
 
-  remove(id: number) {
-    return `This action removes a #${id} auth`;
+    if (!isPasswordValid) {
+      throw new UnauthorizedException('contraseña incorrecta');
+    }
+
+    return {
+      accessToken: this.jwtService.sign({ userId: user.id }),
+    };
   }
 }

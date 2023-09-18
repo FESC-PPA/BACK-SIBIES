@@ -1,42 +1,17 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Patch,
-  Param,
-  Delete,
-} from '@nestjs/common';
+import { Controller, Post, Body } from '@nestjs/common';
 import { AuthsService } from '../services/auths.service';
-import { CreateAuthDto } from '../dto/create-auth.dto';
-import { UpdateAuthDto } from '../dto/update-auth.dto';
+import { ApiOkResponse, ApiTags } from '@nestjs/swagger';
+import { AuthEntity } from '../entities/auth.entity';
+import { LoginDto } from '../dto/login.dto';
 
 @Controller('auths')
+@ApiTags('auths')
 export class AuthsController {
   constructor(private readonly authsService: AuthsService) {}
 
-  @Post()
-  create(@Body() createAuthDto: CreateAuthDto) {
-    return this.authsService.create(createAuthDto);
-  }
-
-  @Get()
-  findAll() {
-    return this.authsService.findAll();
-  }
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.authsService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateAuthDto: UpdateAuthDto) {
-    return this.authsService.update(+id, updateAuthDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.authsService.remove(+id);
+  @Post('login')
+  @ApiOkResponse({ type: AuthEntity })
+  login(@Body() { document, password }: LoginDto) {
+    return this.authsService.login(document, password);
   }
 }

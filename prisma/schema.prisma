@@ -15,7 +15,7 @@ model User {
   identicationCard String          @unique
   name             String
   lastName         String
-  email            String
+  email            String           
   password         String
   phone            String
   rol              Rol             @relation(fields: [rolId], references: [id])
