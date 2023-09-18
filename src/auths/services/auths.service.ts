@@ -27,6 +27,10 @@ export class AuthsService {
       );
     }
 
+    if(user.rolId != 1){
+      throw new UnauthorizedException(`No tiene permisos para acceder a este modulo`);
+    }
+
     const isPasswordValid = await bcrypt.compare(password, user.password);
 
     if (!isPasswordValid) {

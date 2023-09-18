@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateUserDto } from '../dto/create-user.dto';
 import { UpdateUserDto } from '../dto/update-user.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -28,7 +28,17 @@ export class UsersService {
     return this.prismaservie.user.findMany();
   }
 
-  findOne(id: number) {
+  async findOne(id: number) {
+    const user = await this.prismaservie.user.findUnique({
+      where: { id },
+    });
+
+    if (!user) {
+      throw new NotFoundException(
+        `Usuario con el id: ${id} no existe`,
+      );
+    }
+
     return this.prismaservie.user.findUnique({
       where: { id },
       include: {
@@ -39,6 +49,16 @@ export class UsersService {
   }
 
   async update(id: number, updateUserDto: UpdateUserDto) {
+    const user = await this.prismaservie.user.findUnique({
+      where: { id },
+    });
+
+    if (!user) {
+      throw new NotFoundException(
+        `Usuario con el id: ${id} no existe`,
+      );
+    }
+
     if (updateUserDto.password) {
       updateUserDto.password = await bcrypt.hash(
         updateUserDto.password,
@@ -51,7 +71,17 @@ export class UsersService {
     });
   }
 
-  remove(id: number) {
+  async remove(id: number) {
+    const user = await this.prismaservie.user.findUnique({
+      where: { id },
+    });
+
+    if (!user) {
+      throw new NotFoundException(
+        `Usuario con el id: ${id} no existe`,
+      );
+    }
+
     return this.prismaservie.user.delete({ where: { id } });
   }
 }

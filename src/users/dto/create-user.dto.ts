@@ -29,7 +29,7 @@ export class CreateUserDto {
 
   @ApiProperty({ type: String })
   @IsString()
-  @MinLength(13)
+  @MinLength(10)
   @IsNotEmpty()
   phone: string;
 
