@@ -1,17 +1,17 @@
 import { Module } from '@nestjs/common';
-import { AuthController } from './controllers/auth.controller';
-import { AuthService } from './services/auth.service';
-import { UserModule } from 'src/user/user.module';
+import { AuthsService } from './services/auths.service';
+import { UsersModule } from 'src/users/users.module';
+import { AuthsController } from './controllers/auths.controller';
 import { JwtModule } from '@nestjs/jwt';
 import * as dotenv from 'dotenv';
 
 dotenv.config();
 
 @Module({
-  controllers: [AuthController],
-  providers: [AuthService],
+  controllers: [AuthsController],
+  providers: [AuthsService],
   imports: [
-    UserModule,
+    UsersModule,
     JwtModule.register({
       global: true,
       secret: process.env.JWT_CLAVE,
@@ -19,4 +19,4 @@ dotenv.config();
     }),
   ],
 })
-export class AuthModule {}
+export class AuthsModule {}
