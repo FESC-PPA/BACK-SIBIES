@@ -11,25 +11,25 @@ const roundsOfHashing = parseInt(process.env.ROUNDS_OF_HASHING);
 
 @Injectable()
 export class UsersService {
-  constructor(private prismaservie: PrismaService) {}
+  constructor(private prismaservice: PrismaService) {}
 
   async create(createUserDto: CreateUserDto) {
-    const hashedPassword = await bcrypt.hash(
+    const hashedPassword = await bcrypt.hashSync(
       createUserDto.password,
       roundsOfHashing,
     );
 
     createUserDto.password = hashedPassword;
 
-    return this.prismaservie.user.create({ data: createUserDto });
+    return this.prismaservice.user.create({ data: createUserDto });
   }
 
   findAll() {
-    return this.prismaservie.user.findMany();
+    return this.prismaservice.user.findMany();
   }
 
   async findOne(id: number) {
-    const user = await this.prismaservie.user.findUnique({
+    const user = await this.prismaservice.user.findUnique({
       where: { id },
     });
 
@@ -39,7 +39,7 @@ export class UsersService {
       );
     }
 
-    return this.prismaservie.user.findUnique({
+    return this.prismaservice.user.findUnique({
       where: { id },
       include: {
         rol: true,
@@ -49,7 +49,7 @@ export class UsersService {
   }
 
   async update(id: number, updateUserDto: UpdateUserDto) {
-    const user = await this.prismaservie.user.findUnique({
+    const user = await this.prismaservice.user.findUnique({
       where: { id },
     });
 
@@ -65,14 +65,14 @@ export class UsersService {
         roundsOfHashing,
       );
     }
-    return this.prismaservie.user.update({
+    return this.prismaservice.user.update({
       where: { id },
       data: updateUserDto,
     });
   }
 
   async remove(id: number) {
-    const user = await this.prismaservie.user.findUnique({
+    const user = await this.prismaservice.user.findUnique({
       where: { id },
     });
 
@@ -82,6 +82,6 @@ export class UsersService {
       );
     }
 
-    return this.prismaservie.user.delete({ where: { id } });
+    return this.prismaservice.user.delete({ where: { id } });
   }
 }
