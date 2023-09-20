@@ -1,9 +1,16 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsNumber, IsEmail, IsNotEmpty, MinLength } from 'class-validator';
+import {
+  IsString,
+  IsNumber,
+  IsEmail,
+  IsNotEmpty,
+  MinLength,
+  IsNumberString,
+} from 'class-validator';
 
 export class CreateUserDto {
   @ApiProperty({ type: String })
-  @IsString()
+  @IsNumberString()
   @IsNotEmpty()
   identicationCard: string;
 
@@ -33,12 +40,12 @@ export class CreateUserDto {
   @IsNotEmpty()
   phone: string;
 
-  @ApiProperty({ enum: [1,2] })
+  @ApiProperty({ enum: [1, 2] })
   @IsNumber()
   @IsNotEmpty()
   rolId: number;
 
-  @ApiProperty({ enum: [1,2,3,4,5] })
+  @ApiProperty({ enum: [1, 2, 3, 4, 5] })
   @IsNumber()
   @IsNotEmpty()
   genderId: number;

@@ -2,12 +2,12 @@ import {
   Injectable,
   NotFoundException,
   UnauthorizedException,
+  HttpStatus,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from 'src/prisma.service';
 import { AuthEntity } from '../entities/auth.entity';
 import * as bcrypt from 'bcrypt';
-import { use } from 'passport';
 
 @Injectable()
 export class AuthsService {
@@ -41,6 +41,8 @@ export class AuthsService {
 
     return {
       accessToken: this.jwtService.sign({ userId: user.id }),
+      status: HttpStatus.OK,
+      message: 'Bienvenido',
     };
   }
 }
