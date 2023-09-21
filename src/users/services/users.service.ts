@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { HttpStatus, Injectable, NotFoundException, HttpException } from '@nestjs/common';
 import { CreateUserDto } from '../dto/create-user.dto';
 import { UpdateUserDto } from '../dto/update-user.dto';
 import { PrismaService } from 'src/prisma.service';
@@ -34,7 +34,14 @@ export class UsersService {
     });
 
     if (!user) {
-      throw new NotFoundException(`Usuario con el id: ${id} no existe`);
+      throw new HttpException(
+        {
+          status: HttpStatus.NOT_FOUND,
+          data: null,
+          message: 'Usuario no existe', 
+        },
+        HttpStatus.NOT_FOUND, 
+      ); 
     }
 
     return this.prismaservice.user.findUnique({
@@ -52,7 +59,14 @@ export class UsersService {
     });
 
     if (!user) {
-      throw new NotFoundException(`Usuario con el id: ${id} no existe`);
+      throw new HttpException(
+        {
+          status: HttpStatus.NOT_FOUND,
+          data: null,
+          message: 'Usuario no existe', 
+        },
+        HttpStatus.NOT_FOUND, 
+      ); 
     }
 
     if (updateUserDto.password) {
@@ -73,7 +87,14 @@ export class UsersService {
     });
 
     if (!user) {
-      throw new NotFoundException(`Usuario con el id: ${id} no existe`);
+      throw new HttpException(
+        {
+          status: HttpStatus.NOT_FOUND,
+          data: null,
+          message: 'Usuario no existe', 
+        },
+        HttpStatus.NOT_FOUND, 
+      ); 
     }
 
     return this.prismaservice.user.delete({ where: { id } });

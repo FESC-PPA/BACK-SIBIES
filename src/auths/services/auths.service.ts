@@ -40,8 +40,8 @@ export class AuthsService {
     }
 
     return {
-      accessToken: this.jwtService.sign({ userId: user.id }),
       status: HttpStatus.OK,
+      accessToken: this.jwtService.sign({ userId: user.id }),
       message: 'Bienvenido',
     };
   }

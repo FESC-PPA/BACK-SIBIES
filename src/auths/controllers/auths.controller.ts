@@ -11,7 +11,16 @@ export class AuthsController {
 
   @Post('login')
   @ApiOkResponse({ type: AuthEntity })
-  login(@Body() { document, password }: LoginDto) {
-    return this.authsService.login(document, password);
+  async login(@Body() { document, password }: LoginDto) {
+    const { accessToken, message, status } = await this.authsService.login(document, password);
+
+    const response = {
+      code: status, 
+      data: accessToken,       
+      messages: [message],  
+    };
+
+    return response;
   }
 }
+

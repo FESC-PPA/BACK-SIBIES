@@ -9,6 +9,7 @@ import {
   ParseIntPipe,
   UseGuards,
   HttpStatus,
+  HttpException,
 } from '@nestjs/common';
 import { UsersService } from '../services/users.service';
 import { CreateUserDto } from '../dto/create-user.dto';
@@ -39,14 +40,18 @@ export class UsersController {
     if (newUser) {
       return {
         status: HttpStatus.CREATED,
-        message: 'Usuario Creado con exito',
+        message: ['Usuario creado con exito'],
         data: newUser,
       };
     } else {
-      return {
-        status: HttpStatus.BAD_REQUEST,
-        message: 'No se pudo crear el usuario',
-      };
+      throw new HttpException(
+        {
+          status: HttpStatus.NOT_FOUND,
+          data: null,
+          message: 'Usuario no existe', 
+        },
+        HttpStatus.NOT_FOUND, 
+      );
     }
   }
 
@@ -59,11 +64,16 @@ export class UsersController {
     if (!users) {
       return {
         status: HttpStatus.NOT_FOUND,
-        message: 'No se encontraron usuarios',
+        data: null,
+        message: ['no se encontraron usuarios'],
+      };
+    } else {
+      return {
+        status: HttpStatus.OK,
+        data: users.map((user) => new UserEntity(user)),
+        message: ['Usuarios encontrados con exito'],
       };
     }
-
-    return users.map((user) => new UserEntity(user));
   }
 
   @ApiOkResponse({ type: UserEntity })
@@ -71,15 +81,20 @@ export class UsersController {
   @ApiBearerAuth()
   @Get(':id')
   async findOne(@Param('id', ParseIntPipe) id: number) {
-    const user = await this.usersService.findOne(id);
+    const user = new UserEntity(await this.usersService.findOne(id));
     if (!user) {
       return {
         status: HttpStatus.NOT_FOUND,
-        message: `no se encontro el usuario con el id: ${id}`,
+        data: null,
+        message: [`no se encontro el usuario con el id: ${id}`],
+      };
+    } else {
+      return {
+        status: HttpStatus.OK,
+        data: user,
+        message: [`Usuario encontrado con exito`],
       };
     }
-
-    return user;
   }
 
   @Patch(':id')
@@ -101,10 +116,14 @@ export class UsersController {
         data: userFound,
       };
     } else {
-      return {
-        status: HttpStatus.NOT_FOUND,
-        message: `Usuario no encontrado con el id: ${id}`,
-      };
+      throw new HttpException(
+        {
+          status: HttpStatus.NOT_FOUND,
+          data: null,
+          message: 'Usuario no existe', 
+        },
+        HttpStatus.NOT_FOUND, 
+      );
     }
   }
 
@@ -119,13 +138,17 @@ export class UsersController {
       return {
         status: HttpStatus.OK,
         message: `Eliminacion Correcta`,
-        data: userFound,
+        data: null,
       };
     } else {
-      return {
-        status: HttpStatus.NOT_FOUND,
-        message: `Usuario no encontrado con el id: ${id}`,
-      };
+      throw new HttpException(
+        {
+          status: HttpStatus.NOT_FOUND,
+          data: null,
+          message: 'Usuario no existe', 
+        },
+        HttpStatus.NOT_FOUND, 
+      );
     }
   }
 }
