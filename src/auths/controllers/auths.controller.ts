@@ -18,7 +18,7 @@ export class AuthsController {
     );
 
     const response = {
-      code: status,
+      status: status,
       data: {
         accessToken: accessToken,
       },
