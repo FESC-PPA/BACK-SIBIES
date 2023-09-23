@@ -40,7 +40,6 @@ export class UsersController {
     );
 
     if (newUser) {
-
       const { password, ...userWithoutPassword } = newUser;
 
       res
@@ -65,38 +64,34 @@ export class UsersController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @Get()
-  async findAll(@Res() res: Response) {
+  async findAll(): Promise<any> {
     try {
       const users = await this.usersService.findAll();
-  
-      if (!users || users.length === 0) {
-        return res
-          .status(HttpStatus.NOT_FOUND)
-          .json(apiResponse(HttpStatus.NOT_FOUND, 'No se encontraron usuarios'));
+
+      if (users.length > 0) {
+        const usersWithoutPassword = users.map((user) => {
+          const { password, ...userWithoutPassword } = user;
+          return userWithoutPassword;
+        });
+
+        return apiResponse(
+          HttpStatus.OK,
+          usersWithoutPassword,
+          'Lista de usuarios obtenida con éxito',
+        );
+      } else {
+        return apiResponse(
+          HttpStatus.NOT_FOUND,
+          null,
+          'No se encontraron usuarios',
+        );
       }
-
-  
-      const usersWithoutPasswords = users.map((user) => {
-        const { password, ...userWithoutPassword } = user;
-        return userWithoutPassword;
-      }); 
-
-  
-      return res
-        .status(HttpStatus.OK)
-        .json(
-          apiResponse(HttpStatus.OK, usersWithoutPasswords, 'Usuarios encontrados con éxito')
-        );
     } catch (error) {
-      return res
-        .status(HttpStatus.INTERNAL_SERVER_ERROR)
-        .json(
-          apiResponse(
-            HttpStatus.INTERNAL_SERVER_ERROR,
-            null,
-            'Error al buscar usuarios'
-          )
-        );
+      return apiResponse(
+        HttpStatus.INTERNAL_SERVER_ERROR,
+        null,
+        'Error al obtener la lista de usuarios',
+      );
     }
   }
 
@@ -116,13 +111,17 @@ export class UsersController {
           ),
         );
     } else {
-
       const { password, ...userWithoutPassword } = user;
 
       res
         .status(HttpStatus.OK)
-        .json(apiResponse(HttpStatus.OK, userWithoutPassword, 'Usuario encontrado con exito'));
-      
+        .json(
+          apiResponse(
+            HttpStatus.OK,
+            userWithoutPassword,
+            'Usuario encontrado con exito',
+          ),
+        );
     }
   }
 
@@ -140,12 +139,13 @@ export class UsersController {
     );
 
     if (userFound) {
-
       const { password, ...userWithoutPassword } = userFound;
 
       res
         .status(HttpStatus.OK)
-        .json(apiResponse(HttpStatus.OK, userWithoutPassword, 'Cambios Realizados'));
+        .json(
+          apiResponse(HttpStatus.OK, userWithoutPassword, 'Cambios Realizados'),
+        );
     } else {
       res
         .status(HttpStatus.NOT_FOUND)
