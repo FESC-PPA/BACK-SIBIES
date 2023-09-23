@@ -6,10 +6,10 @@ import {
   Patch,
   Param,
   Delete,
+  Res,
   ParseIntPipe,
   UseGuards,
   HttpStatus,
-  HttpException,
 } from '@nestjs/common';
 import { UsersService } from '../services/users.service';
 import { CreateUserDto } from '../dto/create-user.dto';
@@ -22,6 +22,8 @@ import {
 } from '@nestjs/swagger';
 import { UserEntity } from '../entities/user.entity';
 import { JwtAuthGuard } from 'src/auths/jwt-auth.guard';
+import { apiResponse } from 'src/utils/apiResponse';
+import { Response } from 'express';
 
 @Controller('users')
 @ApiTags('users')
@@ -32,26 +34,30 @@ export class UsersController {
   @ApiBearerAuth()
   @Post()
   @ApiCreatedResponse({ type: UserEntity })
-  async create(@Body() createUserDto: CreateUserDto) {
+  async create(@Res() res: Response, @Body() createUserDto: CreateUserDto) {
     const newUser = new UserEntity(
       await this.usersService.create(createUserDto),
     );
 
     if (newUser) {
-      return {
-        status: HttpStatus.CREATED,
-        message: ['Usuario creado con exito'],
-        data: newUser,
-      };
+
+      const { password, ...userWithoutPassword } = newUser;
+
+      res
+        .status(HttpStatus.CREATED)
+        .json(
+          apiResponse(
+            HttpStatus.CREATED,
+            { userWithoutPassword },
+            'Usuario creado con exito',
+          ),
+        );
     } else {
-      throw new HttpException(
-        {
-          status: HttpStatus.NOT_FOUND,
-          data: null,
-          message: 'Usuario no existe', 
-        },
-        HttpStatus.NOT_FOUND, 
-      );
+      res
+        .status(HttpStatus.NOT_FOUND)
+        .json(
+          apiResponse(HttpStatus.CREATED, { newUser }, 'Usuario no existe'),
+        );
     }
   }
 
@@ -59,20 +65,38 @@ export class UsersController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @Get()
-  async findAll() {
-    const users = await this.usersService.findAll();
-    if (!users) {
-      return {
-        status: HttpStatus.NOT_FOUND,
-        data: null,
-        message: ['no se encontraron usuarios'],
-      };
-    } else {
-      return {
-        status: HttpStatus.OK,
-        data: users.map((user) => new UserEntity(user)),
-        message: ['Usuarios encontrados con exito'],
-      };
+  async findAll(@Res() res: Response) {
+    try {
+      const users = await this.usersService.findAll();
+  
+      if (!users || users.length === 0) {
+        return res
+          .status(HttpStatus.NOT_FOUND)
+          .json(apiResponse(HttpStatus.NOT_FOUND, 'No se encontraron usuarios'));
+      }
+
+  
+      const usersWithoutPasswords = users.map((user) => {
+        const { password, ...userWithoutPassword } = user;
+        return userWithoutPassword;
+      }); 
+
+  
+      return res
+        .status(HttpStatus.OK)
+        .json(
+          apiResponse(HttpStatus.OK, usersWithoutPasswords, 'Usuarios encontrados con éxito')
+        );
+    } catch (error) {
+      return res
+        .status(HttpStatus.INTERNAL_SERVER_ERROR)
+        .json(
+          apiResponse(
+            HttpStatus.INTERNAL_SERVER_ERROR,
+            null,
+            'Error al buscar usuarios'
+          )
+        );
     }
   }
 
@@ -80,20 +104,25 @@ export class UsersController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @Get(':id')
-  async findOne(@Param('id', ParseIntPipe) id: number) {
+  async findOne(@Res() res: Response, @Param('id', ParseIntPipe) id: number) {
     const user = new UserEntity(await this.usersService.findOne(id));
     if (!user) {
-      return {
-        status: HttpStatus.NOT_FOUND,
-        data: null,
-        message: [`no se encontro el usuario con el id: ${id}`],
-      };
+      res
+        .status(HttpStatus.NOT_FOUND)
+        .json(
+          apiResponse(
+            HttpStatus.NOT_FOUND,
+            `no se encontro el usuario con el id: ${id}`,
+          ),
+        );
     } else {
-      return {
-        status: HttpStatus.OK,
-        data: user,
-        message: [`Usuario encontrado con exito`],
-      };
+
+      const { password, ...userWithoutPassword } = user;
+
+      res
+        .status(HttpStatus.OK)
+        .json(apiResponse(HttpStatus.OK, userWithoutPassword, 'Usuario encontrado con exito'));
+      
     }
   }
 
@@ -102,6 +131,7 @@ export class UsersController {
   @ApiBearerAuth()
   @ApiCreatedResponse({ type: UserEntity })
   async update(
+    @Res() res: Response,
     @Param('id', ParseIntPipe) id: number,
     @Body() updateUserDto: UpdateUserDto,
   ) {
@@ -110,20 +140,21 @@ export class UsersController {
     );
 
     if (userFound) {
-      return {
-        status: HttpStatus.OK,
-        message: `cambios realizados`,
-        data: userFound,
-      };
+
+      const { password, ...userWithoutPassword } = userFound;
+
+      res
+        .status(HttpStatus.OK)
+        .json(apiResponse(HttpStatus.OK, userWithoutPassword, 'Cambios Realizados'));
     } else {
-      throw new HttpException(
-        {
-          status: HttpStatus.NOT_FOUND,
-          data: null,
-          message: 'Usuario no existe', 
-        },
-        HttpStatus.NOT_FOUND, 
-      );
+      res
+        .status(HttpStatus.NOT_FOUND)
+        .json(
+          apiResponse(
+            HttpStatus.NOT_FOUND,
+            `no se encontro el usuario con el id: ${id}`,
+          ),
+        );
     }
   }
 
@@ -131,24 +162,22 @@ export class UsersController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOkResponse({ type: UserEntity })
-  async remove(@Param('id', ParseIntPipe) id: number) {
+  async remove(@Res() res: Response, @Param('id', ParseIntPipe) id: number) {
     const userFound = new UserEntity(await this.usersService.remove(id));
 
     if (userFound) {
-      return {
-        status: HttpStatus.OK,
-        message: `Eliminacion Correcta`,
-        data: null,
-      };
+      res
+        .status(HttpStatus.OK)
+        .json(apiResponse(HttpStatus.OK, null, 'Eliminado con exito'));
     } else {
-      throw new HttpException(
-        {
-          status: HttpStatus.NOT_FOUND,
-          data: null,
-          message: 'Usuario no existe', 
-        },
-        HttpStatus.NOT_FOUND, 
-      );
+      res
+        .status(HttpStatus.NOT_FOUND)
+        .json(
+          apiResponse(
+            HttpStatus.NOT_FOUND,
+            `no se encontro el usuario con el id: ${id}`,
+          ),
+        );
     }
   }
 }

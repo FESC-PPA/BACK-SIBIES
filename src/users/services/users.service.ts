@@ -1,7 +1,13 @@
-import { HttpStatus, Injectable, NotFoundException, HttpException } from '@nestjs/common';
+import {
+  HttpStatus,
+  Injectable,
+  NotFoundException,
+  HttpException,
+} from '@nestjs/common';
 import { CreateUserDto } from '../dto/create-user.dto';
 import { UpdateUserDto } from '../dto/update-user.dto';
 import { PrismaService } from 'src/prisma.service';
+import { UserEntity } from '../entities/user.entity';
 import * as bcrypt from 'bcrypt';
 import * as dotenv from 'dotenv';
 
@@ -14,6 +20,27 @@ export class UsersService {
   constructor(private prismaservice: PrismaService) {}
 
   async create(createUserDto: CreateUserDto) {
+    const existingUser = await this.prismaservice.user.findFirst({
+      where: {
+        OR: [
+          {
+            identicationCard: createUserDto.identicationCard,
+          },
+        ],
+      },
+    });
+
+    if (existingUser) {
+      throw new HttpException(
+        {
+          message: 'Usuario existente',
+          data: null,
+          statusCode: HttpStatus.BAD_REQUEST,
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
     const hashedPassword = await bcrypt.hashSync(
       createUserDto.password,
       roundsOfHashing,
@@ -36,12 +63,12 @@ export class UsersService {
     if (!user) {
       throw new HttpException(
         {
-          status: HttpStatus.NOT_FOUND,
+          message: 'Usuario no existe',
           data: null,
-          message: 'Usuario no existe', 
+          statusCode: HttpStatus.NOT_FOUND,
         },
-        HttpStatus.NOT_FOUND, 
-      ); 
+        HttpStatus.NOT_FOUND,
+      );
     }
 
     return this.prismaservice.user.findUnique({
@@ -61,12 +88,12 @@ export class UsersService {
     if (!user) {
       throw new HttpException(
         {
-          status: HttpStatus.NOT_FOUND,
+          message: 'Usuario no existe',
           data: null,
-          message: 'Usuario no existe', 
+          statusCode: HttpStatus.NOT_FOUND,
         },
-        HttpStatus.NOT_FOUND, 
-      ); 
+        HttpStatus.NOT_FOUND,
+      );
     }
 
     if (updateUserDto.password) {
@@ -89,12 +116,12 @@ export class UsersService {
     if (!user) {
       throw new HttpException(
         {
-          status: HttpStatus.NOT_FOUND,
+          message: 'Usuario no existe',
           data: null,
-          message: 'Usuario no existe', 
+          statusCode: HttpStatus.NOT_FOUND,
         },
-        HttpStatus.NOT_FOUND, 
-      ); 
+        HttpStatus.NOT_FOUND,
+      );
     }
 
     return this.prismaservice.user.delete({ where: { id } });
