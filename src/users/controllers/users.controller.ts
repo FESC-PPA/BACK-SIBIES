@@ -64,7 +64,7 @@ export class UsersController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @Get()
-  async findAll(): Promise<any> {
+  async findAll(@Res() res: Response): Promise<void> {
     try {
       const users = await this.usersService.findAll();
 
@@ -74,24 +74,36 @@ export class UsersController {
           return userWithoutPassword;
         });
 
-        return apiResponse(
-          HttpStatus.OK,
-          usersWithoutPassword,
-          'Lista de usuarios obtenida con éxito',
-        );
+        res
+          .status(HttpStatus.OK)
+          .json(
+            apiResponse(
+              HttpStatus.OK,
+              usersWithoutPassword,
+              'Lista de usuarios obtenida con éxito',
+            ),
+          );
       } else {
-        return apiResponse(
-          HttpStatus.NOT_FOUND,
-          null,
-          'No se encontraron usuarios',
-        );
+        res
+          .status(HttpStatus.NOT_FOUND)
+          .json(
+            apiResponse(
+              HttpStatus.NOT_FOUND,
+              null,
+              'No se encontraron usuarios',
+            ),
+          );
       }
     } catch (error) {
-      return apiResponse(
-        HttpStatus.INTERNAL_SERVER_ERROR,
-        null,
-        'Error al obtener la lista de usuarios',
-      );
+      res
+        .status(HttpStatus.INTERNAL_SERVER_ERROR)
+        .json(
+          apiResponse(
+            HttpStatus.INTERNAL_SERVER_ERROR,
+            null,
+            'Error al obtener la lista de usuarios',
+          ),
+        );
     }
   }
 
