@@ -74,8 +74,7 @@ export class UsersController {
           return userWithoutPassword;
         });
 
-        res
-          .status(HttpStatus.OK)
+        res          .status(HttpStatus.OK)
           .json(
             apiResponse(
               HttpStatus.OK,

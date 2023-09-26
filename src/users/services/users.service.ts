@@ -7,7 +7,6 @@ import {
 import { CreateUserDto } from '../dto/create-user.dto';
 import { UpdateUserDto } from '../dto/update-user.dto';
 import { PrismaService } from 'src/prisma.service';
-import { UserEntity } from '../entities/user.entity';
 import * as bcrypt from 'bcrypt';
 import * as dotenv from 'dotenv';
 
@@ -104,6 +103,17 @@ export class UsersService {
         roundsOfHashing,
       );
     }
+
+    if (updateUserDto.rolId) {
+      throw new HttpException(
+        {
+          message: 'No se puede actualizar el rol',
+          statusCode: HttpStatus.BAD_REQUEST,
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
     return this.prismaservice.user.update({
       where: { id },
       data: updateUserDto,
@@ -114,6 +124,16 @@ export class UsersService {
     const user = await this.prismaservice.user.findUnique({
       where: { id },
     });
+
+    if(user.id === id){
+      throw new HttpException(
+        {
+          message: 'No puedes eliminarte a ti mismo',
+          statusCode: HttpStatus.BAD_REQUEST,
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
 
     if (!user) {
       throw new HttpException(
