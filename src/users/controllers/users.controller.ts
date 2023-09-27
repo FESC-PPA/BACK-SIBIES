@@ -74,7 +74,8 @@ export class UsersController {
           return userWithoutPassword;
         });
 
-        res          .status(HttpStatus.OK)
+        res
+          .status(HttpStatus.OK)
           .json(
             apiResponse(
               HttpStatus.OK,
@@ -110,15 +111,16 @@ export class UsersController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @Get(':id')
-  async findOne(@Res() res: Response, @Param('id', ParseIntPipe) id: number) {
+  async findOne(@Res() res: Response, @Param('id') id: string) {
+    
     const user = new UserEntity(await this.usersService.findOne(id));
-    if (!user) {
+    if (!user || !user.id) {
       res
         .status(HttpStatus.NOT_FOUND)
         .json(
           apiResponse(
             HttpStatus.NOT_FOUND,
-            `no se encontro el usuario con el id: ${id}`,
+            `no se encontro el usuario con el documento: ${id}`,
           ),
         );
     } else {

@@ -56,12 +56,10 @@ export class UsersService {
     return users;
   }
 
-  async findOne(id: number) {
-    const user = await this.prismaservice.user.findUnique({
-      where: { id },
-    });
+  async findOne(id: string) {
 
-    if (!user) {
+    
+    if (!this.checkUser(id)) {
       throw new HttpException(
         {
           message: 'Usuario no existe',
@@ -72,8 +70,10 @@ export class UsersService {
       );
     }
 
-    return this.prismaservice.user.findUnique({
-      where: { id },
+    
+
+    return this.prismaservice.user.findFirst({
+      where: { identicationCard: id },
       include: {
         rol: true,
         gender: true,
@@ -147,5 +147,10 @@ export class UsersService {
     }
 
     return this.prismaservice.user.delete({ where: { id } });
+  }
+
+  async checkUser(id:string){
+    
+    return await this.prismaservice.user.findFirst({where:{identicationCard: id}});
   }
 }
