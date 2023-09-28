@@ -58,20 +58,6 @@ export class UsersService {
 
   async findOne(id: string) {
 
-    
-    if (!this.checkUser(id)) {
-      throw new HttpException(
-        {
-          message: 'Usuario no existe',
-          data: null,
-          statusCode: HttpStatus.NOT_FOUND,
-        },
-        HttpStatus.NOT_FOUND,
-      );
-    }
-
-    
-
     return this.prismaservice.user.findFirst({
       where: { identicationCard: id },
       include: {
@@ -81,21 +67,9 @@ export class UsersService {
     });
   }
 
-  async update(id: number, updateUserDto: UpdateUserDto) {
-    const user = await this.prismaservice.user.findUnique({
-      where: { id },
-    });
+  async update(id: string, updateUserDto: UpdateUserDto) {
 
-    if (!user) {
-      throw new HttpException(
-        {
-          message: 'Usuario no existe',
-          data: null,
-          statusCode: HttpStatus.NOT_FOUND,
-        },
-        HttpStatus.NOT_FOUND,
-      );
-    }
+    const user = await this.checkUser(id);
 
     if (updateUserDto.password) {
       updateUserDto.password = await bcrypt.hash(
@@ -115,25 +89,22 @@ export class UsersService {
     }
 
     return this.prismaservice.user.update({
-      where: { id },
+      where: { identicationCard: id },
       data: updateUserDto,
     });
   }
 
-  async remove(id: number) {
-    const user = await this.prismaservice.user.findUnique({
-      where: { id },
-    });
+  async remove(id: string) {
+    const user = await this.checkUser(id);
 
-    if(user.id === id){
-      throw new HttpException(
-        {
-          message: 'No puedes eliminarte a ti mismo',
-          statusCode: HttpStatus.BAD_REQUEST,
-        },
-        HttpStatus.BAD_REQUEST,
-      );
-    }
+    return this.prismaservice.user.delete({ where: { identicationCard: id } });
+  }
+
+  //funcion para comprobar si un usuario existe
+  async checkUser(id: string) {
+    const user = await this.prismaservice.user.findFirst({
+      where: { identicationCard: id },
+    });
 
     if (!user) {
       throw new HttpException(
@@ -146,11 +117,6 @@ export class UsersService {
       );
     }
 
-    return this.prismaservice.user.delete({ where: { id } });
-  }
-
-  async checkUser(id:string){
-    
-    return await this.prismaservice.user.findFirst({where:{identicationCard: id}});
+   return user; 
   }
 }

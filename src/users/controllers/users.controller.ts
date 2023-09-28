@@ -7,9 +7,9 @@ import {
   Param,
   Delete,
   Res,
-  ParseIntPipe,
   UseGuards,
   HttpStatus,
+  Req
 } from '@nestjs/common';
 import { UsersService } from '../services/users.service';
 import { CreateUserDto } from '../dto/create-user.dto';
@@ -23,7 +23,7 @@ import {
 import { UserEntity } from '../entities/user.entity';
 import { JwtAuthGuard } from 'src/auths/jwt-auth.guard';
 import { apiResponse } from 'src/utils/apiResponse';
-import { Response } from 'express';
+import { Response, Request } from 'express';
 
 @Controller('users')
 @ApiTags('users')
@@ -112,7 +112,6 @@ export class UsersController {
   @ApiBearerAuth()
   @Get(':id')
   async findOne(@Res() res: Response, @Param('id') id: string) {
-    
     const user = new UserEntity(await this.usersService.findOne(id));
     if (!user || !user.id) {
       res
@@ -144,7 +143,7 @@ export class UsersController {
   @ApiCreatedResponse({ type: UserEntity })
   async update(
     @Res() res: Response,
-    @Param('id', ParseIntPipe) id: number,
+    @Param('id') id: string,
     @Body() updateUserDto: UpdateUserDto,
   ) {
     const userFound = new UserEntity(
@@ -165,7 +164,7 @@ export class UsersController {
         .json(
           apiResponse(
             HttpStatus.NOT_FOUND,
-            `no se encontro el usuario con el id: ${id}`,
+            `no se encontro el usuario con el documento: ${id}`,
           ),
         );
     }
@@ -175,13 +174,39 @@ export class UsersController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOkResponse({ type: UserEntity })
-  async remove(@Res() res: Response, @Param('id', ParseIntPipe) id: number) {
-    const userFound = new UserEntity(await this.usersService.remove(id));
+  async remove(
+    @Req() req: Request,
+    @Res() res: Response,
+    @Param('id') id: string,
+  ) {
+  
+    const userSesion = req.user; 
 
-    if (userFound) {
-      res
-        .status(HttpStatus.OK)
-        .json(apiResponse(HttpStatus.OK, null, 'Eliminado con exito'));
+    console.log(userSesion)
+
+    const userDelete = new UserEntity(await this.usersService.remove(id));
+
+    if (userDelete) {
+      if (userDelete !== userSesion) {
+        res
+          .status(HttpStatus.OK)
+          .json(
+            apiResponse(
+              HttpStatus.OK,
+              null,
+              'Usuario eliminado con exito',
+            ),
+          );
+      } else {
+        res
+          .status(HttpStatus.FORBIDDEN)
+          .json(
+            apiResponse(
+              HttpStatus.FORBIDDEN,
+              `no se puede eliminar a si mismo`,
+            ),
+          );
+      }
     } else {
       res
         .status(HttpStatus.NOT_FOUND)

@@ -18,7 +18,7 @@ dotenv.config();
     JwtModule.register({
       global: true,
       secret: process.env.JWT_CLAVE,
-      signOptions: { expiresIn: '600s' },
+      signOptions: { expiresIn: '60s' }, 
     }),
     UsersModule,
   ],
