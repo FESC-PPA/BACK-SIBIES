@@ -9,7 +9,7 @@ import {
   Res,
   UseGuards,
   HttpStatus,
-  Req
+  Req,
 } from '@nestjs/common';
 import { UsersService } from '../services/users.service';
 import { CreateUserDto } from '../dto/create-user.dto';
@@ -179,23 +179,19 @@ export class UsersController {
     @Res() res: Response,
     @Param('id') id: string,
   ) {
-  
-    const userSesion = req.user; 
+    const userSesion = new UserEntity(req.user) ;
+    console.log(userSesion);
 
-    console.log(userSesion)
+
 
     const userDelete = new UserEntity(await this.usersService.remove(id));
 
     if (userDelete) {
-      if (userDelete !== userSesion) {
+      if (userDelete.identicationCard !== userSesion.identicationCard) {
         res
           .status(HttpStatus.OK)
           .json(
-            apiResponse(
-              HttpStatus.OK,
-              null,
-              'Usuario eliminado con exito',
-            ),
+            apiResponse(HttpStatus.OK, null, 'Usuario eliminado con exito'),
           );
       } else {
         res
@@ -213,7 +209,7 @@ export class UsersController {
         .json(
           apiResponse(
             HttpStatus.NOT_FOUND,
-            `no se encontro el usuario con el id: ${id}`,
+            `no se encontro el usuario con el documento: ${id}`,
           ),
         );
     }
