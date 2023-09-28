@@ -23,7 +23,7 @@ import {
 import { UserEntity } from '../entities/user.entity';
 import { JwtAuthGuard } from 'src/auths/jwt-auth.guard';
 import { apiResponse } from 'src/utils/apiResponse';
-import { Response, Request } from 'express';
+import { Request, Response } from 'express';
 
 @Controller('users')
 @ApiTags('users')
@@ -175,19 +175,18 @@ export class UsersController {
   @ApiBearerAuth()
   @ApiOkResponse({ type: UserEntity })
   async remove(
-    @Req() req: Request,
+    @Req() request: Request,
     @Res() res: Response,
     @Param('id') id: string,
   ) {
-    const userSesion = new UserEntity(req.user) ;
+    const userSesion = request.user;
+
     console.log(userSesion);
-
-
 
     const userDelete = new UserEntity(await this.usersService.remove(id));
 
     if (userDelete) {
-      if (userDelete.identicationCard !== userSesion.identicationCard) {
+      if (userDelete.identicationCard !== userSesion) {
         res
           .status(HttpStatus.OK)
           .json(
