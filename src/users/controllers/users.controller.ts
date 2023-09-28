@@ -10,6 +10,7 @@ import {
   ParseIntPipe,
   UseGuards,
   HttpStatus,
+  Req,
 } from '@nestjs/common';
 import { UsersService } from '../services/users.service';
 import { CreateUserDto } from '../dto/create-user.dto';
@@ -23,12 +24,12 @@ import {
 import { UserEntity } from '../entities/user.entity';
 import { JwtAuthGuard } from 'src/auths/jwt-auth.guard';
 import { apiResponse } from 'src/utils/apiResponse';
-import { Response } from 'express';
+import { Request, Response } from 'express';
 
 @Controller('users')
 @ApiTags('users')
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(private readonly usersService: UsersService) { }
 
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
@@ -74,7 +75,7 @@ export class UsersController {
           return userWithoutPassword;
         });
 
-        res          .status(HttpStatus.OK)
+        res.status(HttpStatus.OK)
           .json(
             apiResponse(
               HttpStatus.OK,
@@ -173,7 +174,12 @@ export class UsersController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOkResponse({ type: UserEntity })
-  async remove(@Res() res: Response, @Param('id', ParseIntPipe) id: number) {
+  async remove(@Req() request: Request,@Res() res: Response, @Param('id', ParseIntPipe) id: number) {
+
+    const userSesion = request.user;
+
+    console.log(userSesion)
+
     const userFound = new UserEntity(await this.usersService.remove(id));
 
     if (userFound) {
