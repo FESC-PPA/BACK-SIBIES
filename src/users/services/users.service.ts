@@ -119,4 +119,15 @@ export class UsersService {
 
    return user; 
   }
+
+  async getUserByID(id: number){
+    return this.prismaservice.user.findFirst({
+      where:{id},
+      include: {
+        rol: true,
+        gender: true,
+      }
+
+    })
+  }
 }

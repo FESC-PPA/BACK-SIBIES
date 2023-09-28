@@ -179,14 +179,15 @@ export class UsersController {
     @Res() res: Response,
     @Param('id') id: string,
   ) {
-    const userSesion = request.user;
+    const userSesion = new UserEntity(await request.user);
+    
+    const userFound = new UserEntity(await this.usersService.checkUser(id));
 
-    console.log(userSesion);
+    if (userFound) {
+      if (userFound.identicationCard !== userSesion.identicationCard) {
 
-    const userDelete = new UserEntity(await this.usersService.remove(id));
+        const userDelete = new UserEntity(await this.usersService.remove(id));
 
-    if (userDelete) {
-      if (userDelete.identicationCard !== userSesion) {
         res
           .status(HttpStatus.OK)
           .json(
