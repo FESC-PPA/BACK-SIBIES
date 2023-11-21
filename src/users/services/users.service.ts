@@ -51,7 +51,7 @@ export class UsersService {
   }
 
   async findAll() {
-    const users = await this.prismaservice.user.findMany();
+    const users = await this.prismaservice.user.findMany({where: {rolId: 2}});
 
     return users;
   }
