@@ -101,6 +101,28 @@ async function main() {
       genderId: 5,
     },
   });
+
+
+  const careerData = [
+    { id: 1, career: 'Diseño grafico', description: '' },
+    { id: 2, career: 'Diseño y Administracion de Negocios de la Moda', description: '' },
+    { id: 3, career: 'Administración Turística y Hotelera', description: '' },
+    { id: 4, career: 'Ingeniería de Software', description: '' },
+    { id: 5, career: 'Administración de Negocio Internacionales', description: '' },
+    { id: 6, career: 'Administración Financiera', description: '' },
+    { id: 7, career: 'Administración de Negocio Internacionales - Distancia', description: '' },
+    { id: 8, career: 'Gestión Logística Empresarial', description: '' },
+
+  ]
+
+  for (const data of careerData) {
+    await prisma.career.upsert({
+      where: { id: data.id },
+      update: {},
+      create: data,
+    });
+  }
+
 }
 
 main()
